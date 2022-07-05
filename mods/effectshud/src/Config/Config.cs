@@ -43,5 +43,6 @@ namespace effectshud.src
             }
         }
         public Part<int> HUD_ALIGNMENT = new Part<int>(11);
+        public Part<double> TICK_EVERY_SECONDS = new Part<double>(1.0);
     }
 }

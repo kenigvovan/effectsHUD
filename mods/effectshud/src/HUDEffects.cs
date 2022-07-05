@@ -20,15 +20,17 @@ namespace effectshud.src
         float del = 20;
         float texSizeW = 64;
         float texSizeH = 64;
-        public override double DrawOrder => 1;
+        public override double DrawOrder => 0.1;
         public HUDEffects(ICoreClientAPI capi) : base(capi)
         {
+            capi.World.RegisterGameTickListener((float dt) => { 
+                if(effectshud.showHUD) ComposeGuis(); }, 1000);
         }
         
         public override void OnOwnPlayerDataReceived()
         {
             this.ComposeGuis();
-            foreach(var it in effectshud.trackedEffects)
+            /*foreach(var it in effectshud.trackedEffects)
             {
 
                 capi.World.Player.Entity.WatchedAttributes.RegisterModifiedListener(it.watchedBranch, () => 
@@ -56,7 +58,7 @@ namespace effectshud.src
                         
                     
                 });
-            }
+            }*/
         }
          
         public void ComposeGuis()
@@ -75,8 +77,49 @@ namespace effectshud.src
             var Compo = this.capi.Gui.CreateCompo("effectshud", bounds1);
             var wa = capi.World.Player.Entity.WatchedAttributes;
             int currentEffectCounter = 0;
+            foreach (var it in effectshud.clientsActiveEffects.ToArray())
+            {
+                if(it.duration <= 0)
+                {
+                    effectshud.clientsActiveEffects.Remove(it);
+                }
+            }
+            foreach (var it in effectshud.clientsActiveEffects)
+            {
+                //if (effectshud.redrawEffectPictures)
+                {
+                    if (effectshud.effectsPictures.TryGetValue(it.typeId, out AssetLocation[] al))
+                    {
+                        Compo.AddImage(ElementBounds.Fixed(0, (int)((texSizeH + del) * currentEffectCounter) + glOffset, 64, 64), al[it.tier - 1]);
+                    }
+                }
+                if (it.infinite)
+                {
+                    Compo.AddStaticText("--:--",
+                   CairoFont.WhiteSmallText().WithFontSize(12),
+                   ElementBounds.Fixed(10, (int)(((texSizeH + del) * currentEffectCounter) + glOffset + ((del) * currentEffectCounter + 64))).WithFixedSize(32.0, 10.0));
+                }
+                else
+                {
+                    //Compo.AddStaticText("67", CairoFont.WhiteSmallText().WithFontSize(12), ElementBounds.Fixed(6, (int)(hChange + del) * currentEffectCounter + 32).WithFixedSize(32.0, 10.0));
+                    Compo.AddStaticText((it.duration / 60).ToString() + ":" + ((it.duration % 60) < 10 ? "0" + (it.duration % 60) : (it.duration % 60).ToString()),
+                        CairoFont.WhiteSmallText().WithFontSize(12),
+                        ElementBounds.Fixed(10, (int)(((texSizeH + del) * currentEffectCounter) + glOffset + 64)).WithFixedSize(32.0, 10.0));
+                }
+                currentEffectCounter++;
+            }
+            foreach (var it in effectshud.clientsActiveEffects)
+            {
+                if (it.infinite)
+                    continue;
+                it.duration--;
+            }
+           effectshud.redrawEffectPictures = false;
+            Compo.Compose();
+            this.Composers["effectshud"] = Compo;
+            this.TryOpen();
 
-            foreach(var it in effectshud.trackedEffects)
+           /* foreach (var it in effectshud.trackedEffects)
             {
                 if(!it.active)
                 {
@@ -104,10 +147,7 @@ namespace effectshud.src
                     }
                 }
                 currentEffectCounter++;
-            }           
-            Compo.Compose();
-            this.Composers["effectshud"] = Compo;
-            this.TryOpen();
+            }         */  
         }
     }
 }

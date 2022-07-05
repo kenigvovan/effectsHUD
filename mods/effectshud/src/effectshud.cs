@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using effectshud.src.DefaultEffects;
+using HarmonyLib;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
+using Vintagestory.Server;
 
 namespace effectshud.src
 {
@@ -17,7 +21,14 @@ namespace effectshud.src
         public static Harmony harmonyInstance;
         public const string harmonyID = "effectshud.Patches";
         public static List<TrackedEffect> trackedEffects = new List<TrackedEffect>();
+        public static Dictionary<string, Type> effects = new Dictionary<string, Type>();
         public static bool showHUD = true;
+        internal static IClientNetworkChannel clientChannel;
+        public static List<EffectClientData> clientsActiveEffects = new List<EffectClientData>();
+        HUDEffects effectsHUD;
+        public static Dictionary<string, AssetLocation[]> effectsPictures = new Dictionary<string, AssetLocation[]>();
+        internal static IServerNetworkChannel serverChannel;
+        public static bool redrawEffectPictures = true;
         public override void StartClientSide(ICoreClientAPI api)
         {
             capi = api;
@@ -35,15 +46,155 @@ namespace effectshud.src
             
             harmonyInstance.Patch(typeof(Vintagestory.Client.NoObf.HudElementCoordinates).GetMethod("OnGuiClosed"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Postfix_CoordsHUD_OnGuiClosed")));
             harmonyInstance.Patch(typeof(Vintagestory.Client.NoObf.HudElementCoordinates).GetMethod("OnGuiOpened"), postfix: new HarmonyMethod(typeof(harmPatch).GetMethod("Postfix_CoordsHUD_OnGuiOpened")));
-
+            api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
+            clientChannel = api.Network.RegisterChannel("effectshud");
+            clientChannel.RegisterMessageType(typeof(EffectsSyncPacket));
+            clientChannel.SetMessageHandler<EffectsSyncPacket>((packet) =>
+            { 
+                clientsActiveEffects = JsonConvert.DeserializeObject<List<EffectClientData>>(packet.currentEffectsData);
+                redrawEffectPictures = true;
+                if (showHUD && effectsHUD != null)
+                {
+                    effectsHUD.ComposeGuis();
+                }
+            });
+            RegisterClientEffectData("regeneration", new string[] { "effectshud:effects/regeneration1", "effectshud:effects/regeneration2", "effectshud:effects/regeneration3" });
+            RegisterClientEffectData("miningslow", new string[] { "effectshud:effects/slowmining1", "effectshud:effects/slowmining2", "effectshud:effects/slowmining3" });
+            RegisterClientEffectData("miningspeed", new string[] { "effectshud:effects/miningspeed1", "effectshud:effects/miningspeed2", "effectshud:effects/miningspeed3" });
+            RegisterClientEffectData("walkslow", new string[] { "effectshud:effects/walkspeed1m", "effectshud:effects/walkspeed2m", "effectshud:effects/walkspeed3m" });
+            RegisterClientEffectData("walkspeed", new string[] { "effectshud:effects/walkspeed1p", "effectshud:effects/walkspeed2p", "effectshud:effects/walkspeed3p" });
+            RegisterClientEffectData("weakmelee", new string[] { "effectshud:effects/weakmelee1", "effectshud:effects/weakmelee2", "effectshud:effects/weakmelee3" });
+            RegisterClientEffectData("strengthmelee", new string[] { "effectshud:effects/strengthmelee1", "effectshud:effects/strengthmelee2", "effectshud:effects/strengthmelee3" });
+            RegisterClientEffectData("bleeding", new string[] { "effectshud:effects/bleeding1", "effectshud:effects/bleeding2", "effectshud:effects/bleeding3" });
         }
+        public static bool RegisterClientEffectData(string typeId, string[] domainAndPath)
+        {
+            AssetLocation tmpAL;
+            AssetLocation[] tmpArr = new AssetLocation[domainAndPath.Length];
+            for (int i = 0; i < domainAndPath.Length; i++)
+            {
+                try
+                {
+                    tmpAL = new AssetLocation(domainAndPath[i] + ".png");
+                    tmpArr[i] = tmpAL;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            effectsPictures.Add(typeId, tmpArr);
+            return true;
+        }
+        public void addDefaultEffect(IPlayer player, int groupId, CmdArgs args)
+        {
+            if(player.WorldData.CurrentGameMode != EnumGameMode.Creative)
+            {
+                return;
+            }
+            //effectname minutes tier targetname
+            if(args.Length < 4)
+            {
+                return;
+            }
+            effects.TryGetValue(args[0], out Type effectType);
+            if(effectType == null)
+            {
+                return;
+            }
+            int durationMin = 0;
+            try
+            {
+                durationMin = int.Parse(args[1]);
+            }
+            catch(FormatException e)
+            {
+                return;
+            }
+            int tier = 1;
+            try
+            {
+                tier = int.Parse(args[2]);
+            }
+            catch (FormatException e)
+            {
+                return;
+            }
 
+            foreach(var it in sapi.World.AllOnlinePlayers)
+            {
+                if(it.PlayerName.Equals(args[3]))
+                {
+                    Effect ef = (Effect)Activator.CreateInstance(effectType);
+                    ef.SetExpiryInRealMinutes(durationMin);
+                    ef.tier = tier;
+                    ApplyEffectOnEntity(it.Entity, ef);
+                    break;
+                }
+            }
+        }
+        public override void StartServerSide(ICoreServerAPI api)
+        {
+            sapi = api;
+            harmonyInstance = new Harmony(harmonyID);
+            base.StartServerSide(api);
+            api.RegisterCommand("ef", "", "", addDefaultEffect);
+            api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
+            RegisterEntityEffect("regeneration", typeof(RegenerationEffect));
+            RegisterEntityEffect("miningslow", typeof(MiningSlowEffect));
+            RegisterEntityEffect("miningspeed", typeof(MiningSpeedEffect));
+            RegisterEntityEffect("walkslow", typeof(WalkSlowEffect));
+            RegisterEntityEffect("walkspeed", typeof(WalkSpeedEffect));
+            RegisterEntityEffect("weakmelee", typeof(WeakMeleeEffect));
+            RegisterEntityEffect("strengthmelee", typeof(StrengthMeleeEffect));
+            RegisterEntityEffect("bleeding", typeof(BleedingEffect));
+            serverChannel = sapi.Network.RegisterChannel("effectshud");
+            serverChannel.RegisterMessageType(typeof(EffectsSyncPacket));
+            api.Event.PlayerDeath += onPlayerDead;
+            //api.Event.PlayerDisconnect += onPlayerLeft;
+            sapi.Event.PlayerNowPlaying += (serverPlayer) =>
+            {
+                EBEffectsAffected ebea = serverPlayer.Entity.GetBehavior<EBEffectsAffected>();
+                if (ebea == null)
+                {
+                    return;
+                }
+                ebea.SendActiveEffectsToClient();
+            };
+        }
+        public void onPlayerDead(IServerPlayer byPlayer, DamageSource damageSource)
+        {
+          
+        }
+        public void onPlayerLeft(IServerPlayer byPlayer)
+        {
+            EBEffectsAffected ebea = byPlayer.Entity.GetBehavior<EBEffectsAffected>();
+            if(ebea == null)
+            {
+                return;
+            }
+            ebea.serialize();
+        }
+        public static bool RegisterEntityEffect(string typeId, Type effectType)
+        {
+            effects.Add(typeId, effectType);
+            return true;
+        }
+        public static bool ApplyEffectOnEntity(Entity entity, Effect effect)
+        {
+            EBEffectsAffected ebea = entity.GetBehavior<EBEffectsAffected>();
+            if(ebea == null)
+            {
+                return false;
+            }
+            return ebea.AddEffect(effect);
+        }
         private bool OnHotKeySkillDialog(KeyCombination comb)
         {
             showHUD = !showHUD;
             double startPointMap = -1;
             double startPointCoords = -1;
-            GuiDialog effHud = null;
+            effectsHUD = null;
             lock (capi.OpenedGuis) {
                 foreach (var it in capi.OpenedGuis)
                 {
@@ -69,11 +220,17 @@ namespace effectshud.src
                         {
                             (it as HUDEffects).TryClose();
                             break;
-                        }
-                        effHud = it as GuiDialog;
+                      }
+                        
                     }
                 }
-
+                if(showHUD)
+                {
+                    //effectsHUD = new HUDEffects(capi);
+                    //effectsHUD.ComposeGuis();
+                    // effectsHUD.TryOpen();
+                }
+                
                 if (startPointCoords != -1 && startPointMap != -1)
                 {
                     HUDEffects.glOffset = (int)(startPointCoords + startPointMap) + 32;
@@ -120,60 +277,9 @@ namespace effectshud.src
             base.Dispose();
             trackedEffects.Clear();
             harmonyInstance.UnpatchAll();
+            effects.Clear();
+            effectsPictures.Clear();
         }
-        public int walkSpeedMul()
-        {
-            var t2 = capi.World.Player.Entity.Stats["walkspeed"];
-            var t = t2.GetBlended();
-            if (t < 0.35)
-            {
-                return 2;
-            }
-            else if (t < 0.5)
-            {
-                return 1;
-            }
-            else if (t < 0.85)
-            {
-                return 0;
-            }
-            return -1;
-        }
-        public int checkminigSpeedMul()
-        {
-            var t = capi.World.Player.Entity.Stats["miningSpeedMul"];
-            if (t.GetBlended() < 1)
-            {
-                return 0;
-            }
-            return -1;
-        }
-        //public int checkWeight()
-        //{
-        //    var t = capi.World.Player.Entity.WatchedAttributes.GetTreeAttribute("weightmod");
-        //    if (t.GetFloat("currentweight") >= t.GetFloat("maxweight"))
-        //    {
-        //        return 0;
-        //    }
-        //    return -1;
-        //}
-        //public int checkTemp()
-        //{
-        //    var t = capi.World.Player.Entity.WatchedAttributes.GetTreeAttribute("bodyTemp").GetFloat("bodytemp");
-        //    if (t < 1000)
-        //    {
-        //        return 0;
-        //    }
-        //    return -1;
-        //}
-        //public int checkSaturation()
-        //{
-        //    var t = capi.World.Player.Entity.WatchedAttributes.GetTreeAttribute("hunger").GetFloat("currentsaturation");
-        //    if(t < 1000)
-        //    {
-        //        return 0;
-        //    }
-        //    return -1;
-        //}
+        public static double Now { get { return sapi.World.Calendar.TotalDays; } }
     }
 }

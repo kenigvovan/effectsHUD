@@ -1,0 +1,14 @@
+﻿[
+    {
+        "file": "game:entities/humanoid/player.json",
+        "reason": "add",
+        "path": "/server/behaviors/-",
+        "value": { "code": "affectedByEffects" }
+    },
+    {
+        "file": "game:entities/humanoid/player.json",
+        "reason": "add",
+        "path": "/client/behaviors/-",
+        "value": { "code": "affectedByEffects" }
+    }
+]

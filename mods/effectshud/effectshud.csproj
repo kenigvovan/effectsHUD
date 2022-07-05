@@ -40,6 +40,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\AppData\Roaming\Vintagestory\Lib\cairo-sharp.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=2.1.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\AppData\Roaming\Vintagestory\Lib\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -74,17 +78,51 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="assets\effectshud\textures\effects\slow1.png" />
-    <Content Include="assets\effectshud\textures\effects\slow2.png" />
-    <Content Include="assets\effectshud\textures\effects\slow3.png" />
-    <Content Include="assets\effectshud\textures\effects\weight1.png" />
+    <Content Include="assets\effectshud\textures\effects\bleeding1.png" />
+    <Content Include="assets\effectshud\textures\effects\bleeding2.png" />
+    <Content Include="assets\effectshud\textures\effects\bleeding3.png" />
+    <Content Include="assets\effectshud\textures\effects\miningspeed1.png" />
+    <Content Include="assets\effectshud\textures\effects\miningspeed2.png" />
+    <Content Include="assets\effectshud\textures\effects\miningspeed3.png" />
+    <Content Include="assets\effectshud\textures\effects\regeneration1.png" />
+    <Content Include="assets\effectshud\textures\effects\regeneration2.png" />
+    <Content Include="assets\effectshud\textures\effects\regeneration3.png" />
+    <Content Include="assets\effectshud\textures\effects\slowmining1.png" />
+    <Content Include="assets\effectshud\textures\effects\slowmining2.png" />
+    <Content Include="assets\effectshud\textures\effects\slowmining3.png" />
+    <Content Include="assets\effectshud\textures\effects\strengthmelee1.png" />
+    <Content Include="assets\effectshud\textures\effects\strengthmelee2.png" />
+    <Content Include="assets\effectshud\textures\effects\strengthmelee3.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed1m.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed1p.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed2m.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed2p.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed3m.png" />
+    <Content Include="assets\effectshud\textures\effects\walkspeed3p.png" />
+    <Content Include="assets\effectshud\textures\effects\weakmelee1.png" />
+    <Content Include="assets\effectshud\textures\effects\weakmelee2.png" />
+    <Content Include="assets\effectshud\textures\effects\weakmelee3.png" />
     <Content Include="modinfo.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Config.cs" />
+    <None Include="assets\game\patches\effects_api_add_behavior.json" />
+    <Compile Include="src\Config\Config.cs" />
+    <Compile Include="src\DefaultEffects\BleedingEffect.cs" />
+    <Compile Include="src\DefaultEffects\MiningSlowEffect.cs" />
+    <Compile Include="src\DefaultEffects\MiningSpeedEffect.cs" />
+    <Compile Include="src\DefaultEffects\StrengthMeleeEffect.cs" />
+    <Compile Include="src\DefaultEffects\WalkSlowEffect.cs" />
+    <Compile Include="src\DefaultEffects\WalkSpeedEffect.cs" />
+    <Compile Include="src\DefaultEffects\WeakMeleeEffect.cs" />
+    <Compile Include="src\EB\EBEffectsAffected.cs" />
+    <Compile Include="src\Effect.cs" />
+    <Compile Include="src\EffectClientData.cs" />
     <Compile Include="src\effectshud.cs" />
-    <Compile Include="src\harmPatch.cs" />
+    <Compile Include="src\EffectsSyncPacket.cs" />
+    <Compile Include="src\Harmony\harmPatch.cs" />
+    <Compile Include="src\DefaultEffects\RegenerationEffect.cs" />
     <Compile Include="src\HUDEffects.cs" />
+    <Compile Include="src\SerializedEffect.cs" />
     <Compile Include="src\TrackedEffect.cs" />
   </ItemGroup>
   <ItemGroup />
