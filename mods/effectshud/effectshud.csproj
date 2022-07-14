@@ -40,6 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\AppData\Roaming\Vintagestory\Lib\cairo-sharp.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="protobuf-net, Version=2.1.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\AppData\Roaming\Vintagestory\Lib\protobuf-net.dll</HintPath>
@@ -72,10 +75,6 @@
       <HintPath>$(AppData)\Vintagestory\Mods\VSCreativeMod.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(AppData)\Vintagestory\Lib\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\effectshud\textures\effects\bleeding1.png" />
@@ -105,6 +104,7 @@
     <Content Include="modinfo.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="assets\game\patches\effects_api_add_behavior.json" />
     <Compile Include="src\Config\Config.cs" />
     <Compile Include="src\DefaultEffects\BleedingEffect.cs" />
@@ -130,6 +130,7 @@
     <Compile Include="src\HUDEffects.cs" />
     <Compile Include="src\SerializedEffect.cs" />
     <Compile Include="src\TrackedEffect.cs" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
