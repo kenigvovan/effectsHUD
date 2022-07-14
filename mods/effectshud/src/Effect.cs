@@ -37,7 +37,7 @@ namespace effectshud.src
             if(this.tier == otherEffect.tier)
             {
                 this.ExpireTick = otherEffect.ExpireTick;
-                this.TickCounter = otherEffect.TickCounter;
+                this.TickCounter = otherEffect.TickCounter;              
                 return;
             }
             this.tier = otherEffect.tier;
@@ -125,6 +125,21 @@ namespace effectshud.src
                 return;
             }
             ebea.activeEffects.Remove(this.effectTypeId);
+            ebea.needUpdate = true;
+        }
+
+        public virtual void OnRevive()
+        {
+
+        }
+        public virtual void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        {
+
+        }
+
+        public virtual void DidAttack(DamageSource source, EntityAgent targetEntity, ref EnumHandling handled)
+        {
+
         }
     }
 }

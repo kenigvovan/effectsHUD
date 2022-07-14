@@ -2,16 +2,70 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Server;
+using Vintagestory.Client.NoObf;
+using Vintagestory.GameContent;
 
 namespace effectshud.src
 {
     [HarmonyPatch]
     public class harmPatch
     {
+        /*public static bool Prefix_TesselateShape(Vintagestory.GameContent.EntitySkinnableShapeRenderer __instance)
+        {
+            return true;
+        }*/
+        public static bool Prefix_GetFullEntityPacket(Vintagestory.Client.NoObf.ClientSystemEntities __instance, Entity entity)
+        {
+            EBEffectsAffected ebef = entity.GetBehavior<EBEffectsAffected>();
+            if(ebef != null)
+            {
+                ebef.SendActiveEffectsToClient(null);
+            }
+            return true;
+        }
+        public static bool Prefix_BeforeRender(EntityShapeRenderer __instance)
+        {
+            return true;
+        }
+        
+        public static bool Prefix_DoRender3DOpaque(EntityShapeRenderer __instance, float dt)
+        {        
+            return true;
+        }
+        public static bool Prefix_DoRender3DOpaqueBatched(EntityShapeRenderer __instance)
+        {
+            if (effectshud.invisiblePlayers.Contains((__instance.entity as EntityPlayer)?.PlayerUID))
+            {
+                return false;
+            }
+            return true;
+        }
+        public static bool Prefix_DoRender2D(EntityShapeRenderer __instance)
+        {
+            if (effectshud.invisiblePlayers.Contains((__instance.entity as EntityPlayer)?.PlayerUID))
+            {
+                return false;
+            }
+            return true;
+        }
+        public static bool Prefix_On_ReceiveDamage(Vintagestory.API.Common.Entities.Entity __instance, DamageSource damageSource, ref float damage)
+        {
+            EBEffectsAffected ebea = __instance.GetBehavior<EBEffectsAffected>();
+            if (ebea == null)
+            {
+                return true;
+            }
+            ebea.OnShouldEntityReceiveDamage(damageSource, ref damage);
+            return true;
+        }
         public static void Postfix_Map_OnGuiClosed(Vintagestory.GameContent.GuiDialogWorldMap __instance)
         {
             updateOffset();

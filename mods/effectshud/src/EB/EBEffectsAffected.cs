@@ -32,10 +32,11 @@ namespace effectshud.src
     public class EBEffectsAffected : EntityBehavior
     {
         public Dictionary<string, Effect> activeEffects = new Dictionary<string, Effect>();
+        public Dictionary<string, EffectClientData> onlyClientsActiveEffects = new Dictionary<string, EffectClientData>();
         List<string> effectsToRemove = new List<string>();
         ITreeAttribute effectsTree;
         JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
-        
+        public bool needUpdate { get; set; } = false;
         float accum = 0;
         public void serialize()
         {
@@ -131,8 +132,6 @@ namespace effectshud.src
                     
                     foreach (var effect in activeEffects)
                     {
-                        var iii = entity.Stats["walkspeed"].GetBlended();
-                        //entity.Stats["walkspeed"].Set("effectshud", 0);
                         if (effect.Value.ExpireTimestampInDays < now || effect.Value.ExpireTick <= effect.Value.TickCounter)
                         {
                             effectsToRemove.Add(effect.Key);
@@ -153,8 +152,9 @@ namespace effectshud.src
                         {
                             activeEffects.Remove(it);
                         }
+                        SendActiveEffectsToClient(effectsToRemove);
                         effectsToRemove.Clear();
-                        SendActiveEffectsToClient();
+                        //SendActiveEffectsToClient();
                     }
 
                     
@@ -171,24 +171,40 @@ namespace effectshud.src
                 it.OnDeath();
             }
 
-            SendActiveEffectsToClient();
+            if (needUpdate)
+            {
+                SendActiveEffectsToClient(null);
+            }
+            needUpdate = false;
             //base.OnEntityDeath(damageSourceForDeath);
             //remove effects which not stay after death
         }
 
-        public void SendActiveEffectsToClient()
+        public void SendActiveEffectsToClient(List<string> effectsTypeIdsToRemove, Effect ef = null)
         {
             List<EffectClientData> effectData = new List<EffectClientData>();
-            foreach (var it in activeEffects.Values)
+            if (ef != null)
             {
-                effectData.Add(new EffectClientData { typeId = it.effectTypeId, duration = it.ExpireTimestampInDays == double.PositiveInfinity ? (it.ExpireTick - it.TickCounter) : (int)(it.ExpireTimestampInDays * 24 * 60 * 60), tier = it.tier, infinite = it.infinite });
+                effectData.Add(new EffectClientData { typeId = ef.effectTypeId, duration = ef.ExpireTimestampInDays == double.PositiveInfinity ? (ef.ExpireTick - ef.TickCounter) : (int)(ef.ExpireTimestampInDays * 24 * 60 * 60), tier = ef.tier, infinite = ef.infinite });
+            }
+            else
+            {
+                foreach (var it in activeEffects.Values)
+                {
+                    effectData.Add(new EffectClientData { typeId = it.effectTypeId, duration = it.ExpireTimestampInDays == double.PositiveInfinity ? (it.ExpireTick - it.TickCounter) : (int)(it.ExpireTimestampInDays * 24 * 60 * 60), tier = it.tier, infinite = it.infinite });
+                }
             }
             var packetToSend = new EffectsSyncPacket()
             {
-                currentEffectsData = JsonConvert.SerializeObject(effectData)
+                playerUID = (entity as EntityPlayer).PlayerUID,
+                currentEffectsData = JsonConvert.SerializeObject(effectData),
+                typeIdsToRemove = effectsTypeIdsToRemove == null ? null : new HashSet<string>(effectsTypeIdsToRemove)
             };
-
-            effectshud.serverChannel.SendPacket(packetToSend, (entity as EntityPlayer).Player as IServerPlayer);
+            var f = effectshud.sapi.World.GetPlayersAround(entity.ServerPos.XYZ, 15000, 15000);
+            foreach (var it in effectshud.sapi.World.GetPlayersAround(entity.ServerPos.XYZ, 15000, 15000))
+            {
+                effectshud.serverChannel.SendPacket(packetToSend, it as IServerPlayer);
+            }
         }
         public bool AddEffect(Effect ef)
         {
@@ -202,13 +218,57 @@ namespace effectshud.src
                 activeEffects.Add(ef.effectTypeId, ef);
                 ef.OnStart();
             }
-            
-            SendActiveEffectsToClient();
+            //no need to send info about an instant effect to client
+            if (ef.ExpireTick != 0)
+            {
+                SendActiveEffectsToClient(null, ef);
+            }
+            //effectshud.sapi.Network.bro
             return true;
         }
         public override void OnReceivedServerPacket(int packetid, byte[] data, ref EnumHandling handled)
         {
-           
+            var c = 2;
+        }
+
+        public override void DidAttack(DamageSource source, EntityAgent targetEntity, ref EnumHandling handled)
+        {
+            foreach (var it in activeEffects.Values)
+            {
+                it.DidAttack(source, targetEntity, ref handled);
+            }
+            if (needUpdate)
+            {
+                SendActiveEffectsToClient(null);
+            }
+            needUpdate = false;
+        }
+
+        public void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        {
+            var ff = entity.Api;
+            foreach (var it in activeEffects.Values)
+            {
+                it.OnShouldEntityReceiveDamage(damageSource, ref damage);
+            }
+            if (needUpdate)
+            {
+                SendActiveEffectsToClient(null);
+            }
+            needUpdate = false;
+        }
+
+        public override void OnEntityRevive()
+        {
+            foreach (var it in activeEffects.Values)
+            {
+                it.OnRevive();
+            }
+            if (needUpdate)
+            {
+                SendActiveEffectsToClient(null);
+            }
+            needUpdate = false;
         }
     }
 }

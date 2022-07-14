@@ -8,7 +8,7 @@ namespace effectshud.src.DefaultEffects
 {
     public class WalkSpeedEffect: Effect
     {
-        public float statChangeValue;
+        public float statChangeValue = 0.25f;
         public WalkSpeedEffect()
         {
             effectTypeId = "walkspeed";

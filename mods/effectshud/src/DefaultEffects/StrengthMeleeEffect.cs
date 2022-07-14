@@ -15,7 +15,7 @@ namespace effectshud.src.DefaultEffects
         }
         public StrengthMeleeEffect(int tier = 1, float statChangeValue = 0.25f,  bool infinite = false) : base(tier, infinite)
         {
-            SetExpiryInRealMinutes(1 * tier);
+           // SetExpiryInRealMinutes(1 * tier);
             this.statChangeValue = statChangeValue;
             effectTypeId = "strengthmelee";
         }
