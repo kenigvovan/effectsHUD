@@ -80,12 +80,15 @@
     <Content Include="assets\effectshud\textures\effects\bleeding1.png" />
     <Content Include="assets\effectshud\textures\effects\bleeding2.png" />
     <Content Include="assets\effectshud\textures\effects\bleeding3.png" />
+    <Content Include="assets\effectshud\textures\effects\fireprotection.png" />
+    <Content Include="assets\effectshud\textures\effects\invisibility.png" />
     <Content Include="assets\effectshud\textures\effects\miningspeed1.png" />
     <Content Include="assets\effectshud\textures\effects\miningspeed2.png" />
     <Content Include="assets\effectshud\textures\effects\miningspeed3.png" />
     <Content Include="assets\effectshud\textures\effects\regeneration1.png" />
     <Content Include="assets\effectshud\textures\effects\regeneration2.png" />
     <Content Include="assets\effectshud\textures\effects\regeneration3.png" />
+    <Content Include="assets\effectshud\textures\effects\safefall.png" />
     <Content Include="assets\effectshud\textures\effects\slowmining1.png" />
     <Content Include="assets\effectshud\textures\effects\slowmining2.png" />
     <Content Include="assets\effectshud\textures\effects\slowmining3.png" />

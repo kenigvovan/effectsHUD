@@ -132,9 +132,8 @@ namespace effectshud.src
         {
 
         }
-        public virtual void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        public virtual void OnShouldEntityReceiveDamage(ref float damage, DamageSource dmgSource)
         {
-
         }
 
         public virtual void DidAttack(DamageSource source, EntityAgent targetEntity, ref EnumHandling handled)

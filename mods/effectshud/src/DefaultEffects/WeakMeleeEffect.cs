@@ -8,7 +8,7 @@ namespace effectshud.src.DefaultEffects
 {
     public class WeakMeleeEffect : Effect
     {
-        public float statChangeValue = 0.25f;
+        public float statChangeValue = -0.25f;
         public WeakMeleeEffect()
         {
             effectTypeId = "weakmelee";

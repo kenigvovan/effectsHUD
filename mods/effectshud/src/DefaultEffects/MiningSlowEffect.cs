@@ -8,7 +8,7 @@ namespace effectshud.src.DefaultEffects
 {
     public class MiningSlowEffect : Effect
     {
-        public float statChangeValue;
+        public float statChangeValue = -0.25f;
         public MiningSlowEffect()
         {
             effectTypeId = "miningslow";

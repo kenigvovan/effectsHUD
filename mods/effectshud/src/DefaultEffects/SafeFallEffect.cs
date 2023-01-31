@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Common;
+using Vintagestory.GameContent;
 
 namespace effectshud.src.DefaultEffects
 {
@@ -14,9 +15,9 @@ namespace effectshud.src.DefaultEffects
         {
             effectTypeId = "safefall";
         }
-        public override void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        public override void OnShouldEntityReceiveDamage(ref float damage, DamageSource dmgSource)
         {
-            if(damageSource.Type == EnumDamageType.Gravity)
+            if(dmgSource.Type == EnumDamageType.Gravity)
             {
                 damage = 0;
             }

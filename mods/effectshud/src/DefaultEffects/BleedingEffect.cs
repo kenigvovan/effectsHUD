@@ -9,7 +9,7 @@ namespace effectshud.src.DefaultEffects
 {
     public class BleedingEffect : Effect
     {
-        public float hpPerTick;
+        public float hpPerTick = 0.05f;
         public BleedingEffect()
         {
             effectTypeId = "bleeding";

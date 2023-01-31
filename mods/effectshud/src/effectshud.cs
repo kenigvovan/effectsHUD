@@ -21,16 +21,25 @@ namespace effectshud.src
         public static ICoreClientAPI capi;
         public static Harmony harmonyInstance;
         public const string harmonyID = "effectshud.Patches";
-        public static List<TrackedEffect> trackedEffects = new List<TrackedEffect>();
-        public static Dictionary<string, Type> effects = new Dictionary<string, Type>();
+        public static List<TrackedEffect> trackedEffects;
+        public static Dictionary<string, Type> effects;
         public static bool showHUD = true;
         internal static IClientNetworkChannel clientChannel;
-        public static Dictionary<string, EffectClientData> clientsActiveEffects = new Dictionary<string, EffectClientData>();
+        public static Dictionary<string, EffectClientData> clientsActiveEffects;
         HUDEffects effectsHUD;
-        public static Dictionary<string, AssetLocation[]> effectsPictures = new Dictionary<string, AssetLocation[]>();
+        public static Dictionary<string, AssetLocation[]> effectsPictures;
         internal static IServerNetworkChannel serverChannel;
         public static bool redrawEffectPictures = true;
-        public static HashSet<string> invisiblePlayers = new HashSet<string>();
+        public static HashSet<string> invisiblePlayers;
+        public override void Start(ICoreAPI api)
+        {
+            base.Start(api);
+            trackedEffects = new List<TrackedEffect>();
+            effects = new Dictionary<string, Type>();
+            clientsActiveEffects = new Dictionary<string, EffectClientData>();
+            effectsPictures = new Dictionary<string, AssetLocation[]>();
+            invisiblePlayers = new HashSet<string>();
+        }
         public override void StartClientSide(ICoreClientAPI api)
         {
             capi = api;
@@ -74,7 +83,10 @@ namespace effectshud.src
                                 }
                                 if (ebef.onlyClientsActiveEffects.TryGetValue(it.typeId, out EffectClientData ecd))
                                 {
-                                    ecd = it;
+                                    ecd.tier = it.tier;
+                                    ecd.infinite = it.infinite;
+                                    ecd.duration = it.duration;
+                                    ecd.typeId = it.typeId; 
                                 }
                                 else
                                 {
@@ -121,10 +133,10 @@ namespace effectshud.src
             RegisterClientEffectData("strengthmelee", new string[] { "effectshud:effects/strengthmelee1", "effectshud:effects/strengthmelee2", "effectshud:effects/strengthmelee3" });
             RegisterClientEffectData("bleeding", new string[] { "effectshud:effects/bleeding1", "effectshud:effects/bleeding2", "effectshud:effects/bleeding3" });
             RegisterClientEffectData("thorns", new string[] { });
-            RegisterClientEffectData("safefall", new string[] { });
-            RegisterClientEffectData("firedamageimmune", new string[] { });
+            RegisterClientEffectData("safefall", new string[] { "effectshud:effects/safefall" });
+            RegisterClientEffectData("firedamageimmune", new string[] { "effectshud:effects/fireprotection" });
             RegisterClientEffectData("forgetting", new string[] { });
-            RegisterClientEffectData("invisibility", new string[] { });
+            RegisterClientEffectData("invisibility", new string[] { "effectshud:effects/invisibility" });
             //RegisterClientEffectData("vampirism", new string[] { });
         }
         public static bool RegisterClientEffectData(string typeId, string[] domainAndPath)
@@ -195,9 +207,9 @@ namespace effectshud.src
         }
         public override void StartServerSide(ICoreServerAPI api)
         {
-            sapi = api;
-            harmonyInstance = new Harmony(harmonyID);
-            harmonyInstance.Patch(typeof(Vintagestory.API.Common.EntityAgent).GetMethod("ReceiveDamage"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_On_ReceiveDamage")));
+            sapi = api;            
+             harmonyInstance = new Harmony(harmonyID);
+           // harmonyInstance.Patch(typeof(Vintagestory.API.Common.EntityAgent).GetMethod("ReceiveDamage"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_On_ReceiveDamage")));
             base.StartServerSide(api);
             api.RegisterCommand("ef", "", "", addDefaultEffect);
             api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
@@ -222,12 +234,16 @@ namespace effectshud.src
             //api.Event.PlayerDisconnect += onPlayerLeft;
             sapi.Event.PlayerNowPlaying += (serverPlayer) =>
             {
-                EBEffectsAffected ebea = serverPlayer.Entity.GetBehavior<EBEffectsAffected>();
-                if (ebea == null)
+                sapi.Event.RegisterCallback((dt =>
                 {
-                    return;
-                }
-                ebea.SendActiveEffectsToClient(null);
+                    EBEffectsAffected ebea = serverPlayer.Entity.GetBehavior<EBEffectsAffected>();
+                    if (ebea == null)
+                    {
+                        return;
+                    }
+                    ebea.SendActiveEffectsToClient(null);
+                }), 1000
+                );
             };
         }
         public void onPlayerDead(IServerPlayer byPlayer, DamageSource damageSource)
@@ -343,11 +359,20 @@ namespace effectshud.src
         public override void Dispose()
         {
             base.Dispose();
-            trackedEffects.Clear();
-            harmonyInstance.UnpatchAll();
-            effects.Clear();
-            effectsPictures.Clear();
-        }
+            sapi = null;
+            capi = null;
+            harmonyInstance = null;
+
+            trackedEffects = null;
+            effects = null;
+
+            clientChannel = null;
+            clientsActiveEffects = null;
+            effectsPictures = null;
+            serverChannel = null;
+
+            invisiblePlayers = new HashSet<string>();
+    }
         public static double Now { get { return sapi.World.Calendar.TotalDays; } }
     }
 }

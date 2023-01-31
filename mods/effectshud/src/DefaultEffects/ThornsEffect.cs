@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Common;
+using Vintagestory.GameContent;
 
 namespace effectshud.src.DefaultEffects
 {
@@ -20,14 +21,14 @@ namespace effectshud.src.DefaultEffects
             this.thornDamage = hpPerAttack * tier;
             effectTypeId = "thorns";
         }
-        public override void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        public override void OnShouldEntityReceiveDamage(ref float damage, DamageSource dmgSource)
         {
             //add new damage type 
-            if (damageSource.SourceEntity != null)
+            if (dmgSource.SourceEntity != null)
             {
-                if (damageSource.Source != EnumDamageSource.Unknown && damageSource.Type != EnumDamageType.PiercingAttack && damageSource.Type != EnumDamageType.Heal)
+                if (dmgSource.Source != EnumDamageSource.Unknown && dmgSource.Type != EnumDamageType.PiercingAttack && dmgSource.Type != EnumDamageType.Heal)
                 {
-                    damageSource.SourceEntity.ReceiveDamage(new DamageSource()
+                    dmgSource.SourceEntity.ReceiveDamage(new DamageSource()
                     {
                         Source = EnumDamageSource.Unknown,
                         Type = EnumDamageType.PiercingAttack

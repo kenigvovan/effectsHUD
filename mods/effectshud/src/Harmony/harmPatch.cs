@@ -56,7 +56,7 @@ namespace effectshud.src
             }
             return true;
         }
-        public static bool Prefix_On_ReceiveDamage(Vintagestory.API.Common.Entities.Entity __instance, DamageSource damageSource, ref float damage)
+        /*public static bool Prefix_On_ReceiveDamage(Vintagestory.API.Common.Entities.Entity __instance, DamageSource damageSource, ref float damage)
         {
             EBEffectsAffected ebea = __instance.GetBehavior<EBEffectsAffected>();
             if (ebea == null)
@@ -65,7 +65,7 @@ namespace effectshud.src
             }
             ebea.OnShouldEntityReceiveDamage(damageSource, ref damage);
             return true;
-        }
+        }*/
         public static void Postfix_Map_OnGuiClosed(Vintagestory.GameContent.GuiDialogWorldMap __instance)
         {
             updateOffset();

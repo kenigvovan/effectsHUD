@@ -8,6 +8,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace effectshud.src
 {
@@ -99,7 +100,9 @@ namespace effectshud.src
             {
                 deserialize();
             }
-            
+            entity.GetBehavior<EntityBehaviorHealth>().onDamaged += OnShouldEntityReceiveDamage;
+            //SendActiveEffectsToClient(null);
+
         }
         public override void OnEntityDespawn(EntityDespawnReason despawn)
         {
@@ -201,9 +204,12 @@ namespace effectshud.src
                 typeIdsToRemove = effectsTypeIdsToRemove == null ? null : new HashSet<string>(effectsTypeIdsToRemove)
             };
             var f = effectshud.sapi.World.GetPlayersAround(entity.ServerPos.XYZ, 15000, 15000);
-            foreach (var it in effectshud.sapi.World.GetPlayersAround(entity.ServerPos.XYZ, 15000, 15000))
+            foreach (var it in f)
             {
                 effectshud.serverChannel.SendPacket(packetToSend, it as IServerPlayer);
+            }
+            if (!f.Contains((entity as EntityPlayer).Player)){
+                effectshud.serverChannel.SendPacket(packetToSend, (entity as EntityPlayer).Player as IServerPlayer);
             }
         }
         public bool AddEffect(Effect ef)
@@ -244,18 +250,18 @@ namespace effectshud.src
             needUpdate = false;
         }
 
-        public void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        public float OnShouldEntityReceiveDamage(float damage, DamageSource dmgSource)
         {
-            var ff = entity.Api;
             foreach (var it in activeEffects.Values)
             {
-                it.OnShouldEntityReceiveDamage(damageSource, ref damage);
+                it.OnShouldEntityReceiveDamage(ref damage, dmgSource);
             }
             if (needUpdate)
             {
                 SendActiveEffectsToClient(null);
             }
             needUpdate = false;
+            return damage;
         }
 
         public override void OnEntityRevive()

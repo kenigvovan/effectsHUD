@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Common;
+using Vintagestory.GameContent;
 
 namespace effectshud.src.DefaultEffects
 {
@@ -13,12 +14,11 @@ namespace effectshud.src.DefaultEffects
         {
             this.effectTypeId = "firedamageimmune";
         }
-        public override void OnShouldEntityReceiveDamage(DamageSource damageSource, ref float damage)
+        public override void OnShouldEntityReceiveDamage(ref float damage, DamageSource dmgSource)
         {
-            if(damageSource.Type == EnumDamageType.Fire)
+            if(dmgSource.Type == EnumDamageType.Fire)
             {
                 damage = 0;
-                return;
             }
         }
     }
