@@ -118,6 +118,7 @@
     <Compile Include="src\DefaultEffects\MiningSpeedEffect.cs" />
     <Compile Include="src\DefaultEffects\SafeFallEffect.cs" />
     <Compile Include="src\DefaultEffects\StrengthMeleeEffect.cs" />
+    <Compile Include="src\DefaultEffects\TemporalStabilityRestoreEffect.cs" />
     <Compile Include="src\DefaultEffects\ThornsEffect.cs" />
     <Compile Include="src\DefaultEffects\VampirismEffect.cs" />
     <Compile Include="src\DefaultEffects\WalkSlowEffect.cs" />

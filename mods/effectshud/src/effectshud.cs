@@ -35,7 +35,10 @@ namespace effectshud.src
         {
             base.Start(api);
             trackedEffects = new List<TrackedEffect>();
-            effects = new Dictionary<string, Type>();
+            if (effects == null)
+            {
+                effects = new Dictionary<string, Type>();
+            }
             clientsActiveEffects = new Dictionary<string, EffectClientData>();
             effectsPictures = new Dictionary<string, AssetLocation[]>();
             invisiblePlayers = new HashSet<string>();
@@ -137,6 +140,7 @@ namespace effectshud.src
             RegisterClientEffectData("firedamageimmune", new string[] { "effectshud:effects/fireprotection" });
             RegisterClientEffectData("forgetting", new string[] { });
             RegisterClientEffectData("invisibility", new string[] { "effectshud:effects/invisibility" });
+            RegisterClientEffectData("temporalstabilityrestore", new string[] { });
             //RegisterClientEffectData("vampirism", new string[] { });
         }
         public static bool RegisterClientEffectData(string typeId, string[] domainAndPath)
@@ -160,6 +164,7 @@ namespace effectshud.src
         }
         public void addDefaultEffect(IPlayer player, int groupId, CmdArgs args)
         {
+           //player.Entity.SidedProperties
             if(player.WorldData.CurrentGameMode != EnumGameMode.Creative)
             {
                 return;
@@ -226,6 +231,7 @@ namespace effectshud.src
             RegisterEntityEffect("firedamageimmune", typeof(FireDamageImmuneEffect));
             RegisterEntityEffect("forgetting", typeof(ForgettingEffect));
             RegisterEntityEffect("invisibility", typeof(InvisibilityEffect));
+            RegisterEntityEffect("temporalstabilityrestore", typeof(TemporalStabilityRestoreEffect));
             //RegisterEntityEffect("vampirism", typeof(VampirismEffect));
             serverChannel = sapi.Network.RegisterChannel("effectshud");
             serverChannel.RegisterMessageType(typeof(EffectsSyncPacket));
