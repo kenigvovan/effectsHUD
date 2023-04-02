@@ -104,7 +104,7 @@ namespace effectshud.src
             //SendActiveEffectsToClient(null);
 
         }
-        public override void OnEntityDespawn(EntityDespawnReason despawn)
+        public override void OnEntityDespawn(EntityDespawnData despawn)
         {
             base.OnEntityDespawn(despawn);
             if (entity.Api.Side == EnumAppSide.Client)

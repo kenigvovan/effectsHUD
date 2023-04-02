@@ -162,45 +162,48 @@ namespace effectshud.src
             effectsPictures.Add(typeId, tmpArr);
             return true;
         }
-        public void addDefaultEffect(IPlayer player, int groupId, CmdArgs args)
+        public static TextCommandResult addDefaultEffect(TextCommandCallingArgs args)
         {
-           //player.Entity.SidedProperties
-            if(player.WorldData.CurrentGameMode != EnumGameMode.Creative)
+            TextCommandResult tcr = new TextCommandResult();
+            tcr.Status = EnumCommandStatus.Success;
+            IServerPlayer player = args.Caller.Player as IServerPlayer;
+            //player.Entity.SidedProperties
+            if (player.WorldData.CurrentGameMode != EnumGameMode.Creative)
             {
-                return;
+                return tcr;
             }
             //effectname minutes tier targetname
-            if(args.Length < 4)
+            if(args.RawArgs.Length < 4)
             {
-                return;
+                return tcr;
             }
-            effects.TryGetValue(args[0], out Type effectType);
+            effects.TryGetValue(args.RawArgs[0], out Type effectType);
             if(effectType == null)
             {
-                return;
+                return tcr;
             }
             int durationMin = 0;
             try
             {
-                durationMin = int.Parse(args[1]);
+                durationMin = int.Parse(args.RawArgs[1]);
             }
             catch(FormatException e)
             {
-                return;
+                return tcr;
             }
             int tier = 1;
             try
             {
-                tier = int.Parse(args[2]);
+                tier = int.Parse(args.RawArgs[2]);
             }
             catch (FormatException e)
             {
-                return;
+                return tcr;
             }
 
             foreach(var it in sapi.World.AllOnlinePlayers)
             {
-                if(it.PlayerName.Equals(args[3]))
+                if(it.PlayerName.Equals(args.RawArgs[3]))
                 {
                     Effect ef = (Effect)Activator.CreateInstance(effectType);
                     ef.SetExpiryInRealMinutes(durationMin);
@@ -209,6 +212,7 @@ namespace effectshud.src
                     break;
                 }
             }
+            return tcr;
         }
         public override void StartServerSide(ICoreServerAPI api)
         {
@@ -216,7 +220,10 @@ namespace effectshud.src
              harmonyInstance = new Harmony(harmonyID);
            // harmonyInstance.Patch(typeof(Vintagestory.API.Common.EntityAgent).GetMethod("ReceiveDamage"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_On_ReceiveDamage")));
             base.StartServerSide(api);
-            api.RegisterCommand("ef", "", "", addDefaultEffect);
+
+            sapi.ChatCommands.Create("ef").HandleWith(addDefaultEffect)
+               .RequiresPlayer().RequiresPrivilege(Privilege.controlserver).IgnoreAdditionalArgs();
+
             api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
             RegisterEntityEffect("regeneration", typeof(RegenerationEffect));
             RegisterEntityEffect("miningslow", typeof(MiningSlowEffect));
