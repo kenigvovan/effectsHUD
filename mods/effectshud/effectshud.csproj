@@ -111,6 +111,7 @@
     <None Include="assets\game\patches\effects_api_add_behavior.json" />
     <Compile Include="src\Config\Config.cs" />
     <Compile Include="src\DefaultEffects\BleedingEffect.cs" />
+    <Compile Include="src\DefaultEffects\CANWeightBuffEffect.cs" />
     <Compile Include="src\DefaultEffects\FireDamageImmuneEffect.cs" />
     <Compile Include="src\DefaultEffects\ForgettingEffect.cs" />
     <Compile Include="src\DefaultEffects\InvisibilityEffect.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="src\DefaultEffects\MiningSpeedEffect.cs" />
     <Compile Include="src\DefaultEffects\SafeFallEffect.cs" />
     <Compile Include="src\DefaultEffects\StrengthMeleeEffect.cs" />
+    <Compile Include="src\DefaultEffects\TemporalChargeEffect.cs" />
     <Compile Include="src\DefaultEffects\TemporalStabilityRestoreEffect.cs" />
     <Compile Include="src\DefaultEffects\ThornsEffect.cs" />
     <Compile Include="src\DefaultEffects\VampirismEffect.cs" />

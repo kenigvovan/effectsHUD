@@ -64,6 +64,7 @@ namespace effectshud.src
             harmonyInstance.Patch(typeof(Vintagestory.GameContent.EntityShapeRenderer).GetMethod("DoRender2D"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_DoRender2D")));
             harmonyInstance.Patch(typeof(Vintagestory.Server.ServerPackets).GetMethod("GetFullEntityPacket"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_GetFullEntityPacket")));
             //harmonyInstance.Patch(typeof(Vintagestory.GameContent.EntitySkinnableShapeRenderer).GetMethod("TesselateShape"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_TesselateShape")));
+           
             api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
             clientChannel = api.Network.RegisterChannel("effectshud");
             clientChannel.RegisterMessageType(typeof(EffectsSyncPacket));
@@ -141,6 +142,9 @@ namespace effectshud.src
             RegisterClientEffectData("forgetting", new string[] { });
             RegisterClientEffectData("invisibility", new string[] { "effectshud:effects/invisibility" });
             RegisterClientEffectData("temporalstabilityrestore", new string[] { });
+            RegisterClientEffectData("canweightbuff", new string[] { });
+            RegisterClientEffectData("cantemporalcharge", new string[] { });
+            //cantemporalcharge
             //RegisterClientEffectData("vampirism", new string[] { });
         }
         public static bool RegisterClientEffectData(string typeId, string[] domainAndPath)
@@ -214,7 +218,8 @@ namespace effectshud.src
         {
             sapi = api;            
              harmonyInstance = new Harmony(harmonyID);
-           // harmonyInstance.Patch(typeof(Vintagestory.API.Common.EntityAgent).GetMethod("ReceiveDamage"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_On_ReceiveDamage")));
+            harmonyInstance.Patch(typeof(Vintagestory.GameContent.EntityBehaviorTemporalStabilityAffected).GetMethod("OnGameTick"), transpiler: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_EntityBehaviorTemporalStabilityAffected")));
+            // harmonyInstance.Patch(typeof(Vintagestory.API.Common.EntityAgent).GetMethod("ReceiveDamage"), prefix: new HarmonyMethod(typeof(harmPatch).GetMethod("Prefix_On_ReceiveDamage")));
             base.StartServerSide(api);
             api.RegisterCommand("ef", "", "", addDefaultEffect);
             api.RegisterEntityBehaviorClass("affectedByEffects", typeof(EBEffectsAffected));
@@ -232,6 +237,9 @@ namespace effectshud.src
             RegisterEntityEffect("forgetting", typeof(ForgettingEffect));
             RegisterEntityEffect("invisibility", typeof(InvisibilityEffect));
             RegisterEntityEffect("temporalstabilityrestore", typeof(TemporalStabilityRestoreEffect));
+            RegisterEntityEffect("canweightbuff", typeof(CANWeightBuffEffect));
+            RegisterEntityEffect("cantemporalcharge", typeof(TemporalChargeEffect));
+            //cantemporalcharge
             //RegisterEntityEffect("vampirism", typeof(VampirismEffect));
             serverChannel = sapi.Network.RegisterChannel("effectshud");
             serverChannel.RegisterMessageType(typeof(EffectsSyncPacket));

@@ -3,12 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
@@ -130,6 +132,46 @@ namespace effectshud.src
                     HUDEffects.glOffset = 64;
                 }
 
+            }
+        }
+        public static double addNameAndProcessMadeTool(EntityBehaviorTemporalStabilityAffected ebtsa, double gain)
+        {
+            var tmpVal = ebtsa.entity.Stats.GetBlended("cantemporalcharge");
+            if (tmpVal == 1)
+            {
+                return gain;
+            }
+            if(gain >= 0)
+            {
+                gain *= tmpVal;
+            }
+            else
+            {
+                gain /= tmpVal;
+            }
+            return gain;
+        }
+        public static IEnumerable<CodeInstruction> Prefix_EntityBehaviorTemporalStabilityAffected(IEnumerable<CodeInstruction> instructions)
+        {
+            bool found = false;
+            var codes = new List<CodeInstruction>(instructions);
+            var decMethod = AccessTools.GetDeclaredMethods(typeof(IWorldAccessor))
+            .Where(m => m.Name == "SpawnItemEntity" && m.GetParameters().Types().Contains(typeof(ItemStack)) && m.GetParameters().Types().Contains(typeof(Vec3d)) && m.GetParameters().Types().Contains(typeof(Vec3d)))
+            .Single();
+            var proxyMethod = AccessTools.Method(typeof(harmPatch), "addNameAndProcessMadeTool");
+            for (int i = 0; i < codes.Count; i++)
+            {
+                if (!found &&
+                    codes[i].opcode == OpCodes.Ldloc_2 && codes[i + 1].opcode == OpCodes.Add && codes[i + 2].opcode == OpCodes.Ldc_R8 && codes[i - 1].opcode == OpCodes.Call)
+                {
+                    //yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return codes[i];
+                    yield return new CodeInstruction(OpCodes.Call, proxyMethod);
+                    found = true;
+                    continue;
+                }
+                yield return codes[i];
             }
         }
     }

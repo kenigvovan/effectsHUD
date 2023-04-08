@@ -3,8 +3,8 @@
   "modid": "effectshud",
   "name": "effectshud",
   "author": "KenigVovan",
-  "description": "To be added",
-  "version": "1.0.8",
+  "description": "List of effects which can be applied to player.",
+  "version": "1.0.10",
   "dependency": {
     "game": ""
   }
